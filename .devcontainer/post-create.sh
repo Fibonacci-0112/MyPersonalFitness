@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+EXPECTED_DOTNET_SDK_VERSION="11.0.100-preview.5.26302.115"
+
 echo "==> .NET info"
 dotnet --info
+
+INSTALLED_DOTNET_SDK_VERSION="$(dotnet --version)"
+
+if [ "${INSTALLED_DOTNET_SDK_VERSION}" != "${EXPECTED_DOTNET_SDK_VERSION}" ]; then
+  echo "ERROR: Expected .NET SDK ${EXPECTED_DOTNET_SDK_VERSION}, but found ${INSTALLED_DOTNET_SDK_VERSION}."
+  exit 1
+fi
 
 echo "==> Installing Android SDK packages"
 
@@ -17,9 +26,11 @@ sdkmanager --install \
   "platforms;android-35" \
   "build-tools;35.0.0"
 
-echo "==> Installing .NET workloads"
+echo "==> Installing .NET 11 preview workloads"
 
-dotnet workload install maui-android wasm-tools
+dotnet workload install \
+  maui-android \
+  wasm-tools
 
 echo "==> Restoring .NET tools"
 
@@ -40,6 +51,9 @@ else
   echo "No .sln file found within max depth 3; restoring current directory."
   dotnet restore
 fi
+
+echo "==> Installed .NET SDK"
+dotnet --version
 
 echo "==> Installed .NET workloads"
 dotnet workload list
