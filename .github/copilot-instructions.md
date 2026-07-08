@@ -11,7 +11,7 @@
 ```
 MyPersonalFitness.slnx          ← solution file (dotnet slnx format)
 src/
-  MyPersonalFitness.Core/       ← .NET 10 class library – all shared logic
+  MyPersonalFitness.Core/       ← .NET 11 class library – all shared logic
     Models/                     ← Domain models (plain C# classes / records)
     Interfaces/                 ← Repository contracts (all async)
     Services/                   ← Business-logic services (injected via DI)
@@ -119,10 +119,10 @@ cd src/MyPersonalFitness.Web && dotnet run
 dotnet test tests/MyPersonalFitness.Tests
 
 # Build MAUI (requires: dotnet workload install maui + platform SDK)
-dotnet build src/MyPersonalFitness.App -f net10.0-android
-dotnet build src/MyPersonalFitness.App -f net10.0-windows10.0.19041.0
-dotnet build src/MyPersonalFitness.App -f net10.0-maccatalyst   # macOS only
-dotnet build src/MyPersonalFitness.App -f net10.0-ios           # macOS only
+dotnet build src/MyPersonalFitness.App -f net11.0-android
+dotnet build src/MyPersonalFitness.App -f net11.0-windows10.0.19041.0
+dotnet build src/MyPersonalFitness.App -f net11.0-maccatalyst   # macOS only
+dotnet build src/MyPersonalFitness.App -f net11.0-ios           # macOS only
 ```
 
 **Known environment issue:** The MAUI project (`MyPersonalFitness.App`) cannot be built in this sandboxed environment without the MAUI workload. Always build/test using Core and Web targets. Avoid running `dotnet build MyPersonalFitness.slnx` (solution-level) as it will attempt to build the MAUI project and fail without the workload.
@@ -133,7 +133,7 @@ dotnet build src/MyPersonalFitness.App -f net10.0-ios           # macOS only
 
 | Concern | Technology |
 |---------|-----------|
-| Target framework | .NET 10 |
+| Target framework | .NET 11 |
 | Web UI | Blazor WebAssembly |
 | Native UI | .NET MAUI |
 | Native state | MVVM + `CommunityToolkit.Mvvm` (`[ObservableProperty]`, `[RelayCommand]`) |
@@ -145,10 +145,10 @@ dotnet build src/MyPersonalFitness.App -f net10.0-ios           # macOS only
 
 ## Coding conventions
 
-- **C# 12 / .NET 10** features are in use: primary constructors on services, collection expressions (`[.. list]`, `[]`), `record` types for DTOs.
+- **C# 14 / .NET 11** features are in use: primary constructors on services, collection expressions (`[.. list]`, `[]`), `record` types for DTOs.
 - **Nullable reference types** are enabled (`<Nullable>enable</Nullable>`) in all projects – always handle nullable returns.
 - **No mocking library** – unit tests instantiate real `InMemory*Repository` instances directly (see `WorkoutServiceTests.BuildService()`).
-- Services use **primary constructor injection** (C# 12 syntax).
+- Services use **primary constructor injection** (C# 14 syntax).
 - Repository `Add` returns the assigned `int` id.
 - XML doc comments exist in places (class-level summaries are common), but many public service methods and repository interface members are currently undocumented—don’t assume `<summary>` is always present.
 - UserId is hard-coded as `1` in the current Web pages and ViewModels (single-user app prototype).

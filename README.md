@@ -34,7 +34,7 @@ MyPersonalFitness.sln
 
 | Layer | Technology | Reason |
 |-------|-----------|--------|
-| Shared logic | .NET 10 class library | Single codebase shared across all platforms |
+| Shared logic | .NET 11 class library | Single codebase shared across all platforms |
 | Web | Blazor WebAssembly | Runs in browser with no server; PWA-ready |
 | Native (Win/Android/iOS/macOS) | .NET MAUI | Microsoft's official cross-platform UI framework |
 | Native state | MVVM + CommunityToolkit.Mvvm | Reactive UI with minimal boilerplate |
@@ -48,7 +48,7 @@ MyPersonalFitness.sln
 
 ### Prerequisites
 
-* [.NET 10 SDK](https://dotnet.microsoft.com/download) (or later)
+* [.NET 11 SDK](https://dotnet.microsoft.com/download) matching the version pinned in `global.json` (preview SDKs may be required)
 * .NET MAUI workload (for native platforms): `dotnet workload install maui`
 
 ### Run the Web app (no MAUI workload required)
@@ -69,14 +69,14 @@ dotnet test tests/MyPersonalFitness.Tests
 
 ```bash
 # Android
-dotnet build src/MyPersonalFitness.App -f net10.0-android
+dotnet build src/MyPersonalFitness.App -f net11.0-android
 
 # Windows
-dotnet build src/MyPersonalFitness.App -f net10.0-windows10.0.19041.0
+dotnet build src/MyPersonalFitness.App -f net11.0-windows10.0.19041.0
 
 # macOS / iOS (requires macOS)
-dotnet build src/MyPersonalFitness.App -f net10.0-maccatalyst
-dotnet build src/MyPersonalFitness.App -f net10.0-ios
+dotnet build src/MyPersonalFitness.App -f net11.0-maccatalyst
+dotnet build src/MyPersonalFitness.App -f net11.0-ios
 ```
 
 ## Goal Estimation Algorithm
