@@ -57,7 +57,7 @@ All repositories extend the generic `IRepository<T>` interface (`GetByIdAsync`, 
 - `IUserProfileRepository` – `GetCurrentUserAsync`
 - `IFitnessGoalRepository` – `GetByUserAsync`, `GetActiveGoalByUserAsync`
 
-Every repository method is **async** (returns `Task` or `Task<T>`). The `InMemoryRepository<T>` base class wraps a `List<T>` behind `Task.FromResult` – it is not thread-safe for concurrent writers.
+Every repository method is **async** (returns `Task` or `Task<T>`). The `InMemoryRepository<T>` base class is a synchronous wrapper around a `List<T>` (via `Task.FromResult`/`Task.CompletedTask`) and is not thread-safe for concurrent writers (its XML summary currently claims it is thread-safe).
 
 ### Adding a new domain entity
 
