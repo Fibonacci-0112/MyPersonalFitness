@@ -150,7 +150,7 @@ dotnet build src/MyPersonalFitness.App -f net10.0-ios           # macOS only
 - **No mocking library** – unit tests instantiate real `InMemory*Repository` instances directly (see `WorkoutServiceTests.BuildService()`).
 - Services use **primary constructor injection** (C# 12 syntax).
 - Repository `Add` returns the assigned `int` id.
-- All public service methods and interface members have XML doc comments (`<summary>`).
+- XML doc comments exist in places (class-level summaries are common), but many public service methods and repository interface members are currently undocumented—don’t assume `<summary>` is always present.
 - UserId is hard-coded as `1` in the current Web pages and ViewModels (single-user app prototype).
 - The `InMemoryRepository<T>` is not thread-safe; do not rely on concurrent writes in tests.
 - MAUI ViewModels inherit `ObservableObject`; use `[ObservableProperty]` for bindable fields and `[RelayCommand]` for commands.
