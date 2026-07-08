@@ -1,9 +1,12 @@
 {
-  "name": "Health Fitness App - .NET MAUI + Blazor WASM",
+  "name": "Health Fitness App - .NET 11 Preview MAUI + Blazor WASM",
 
   "build": {
     "dockerfile": "Dockerfile",
-    "context": ".."
+    "context": "..",
+    "args": {
+      "DOTNET_SDK_VERSION": "11.0.100-preview.5.26302.115"
+    }
   },
 
   "hostRequirements": {
@@ -32,6 +35,7 @@
   "remoteUser": "vscode",
 
   "containerEnv": {
+    "DOTNET_ROOT": "/usr/share/dotnet",
     "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
     "DOTNET_NOLOGO": "true",
     "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1",
@@ -92,6 +96,9 @@
     },
     "5173": {
       "label": "Blazor/Vite Dev Server"
+    },
+    "5174": {
+      "label": "Secondary Frontend Dev Server"
     },
     "7000": {
       "label": "Backend API HTTP"
