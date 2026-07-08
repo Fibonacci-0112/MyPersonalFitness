@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:MyPersonalFitness.App.ViewModels"
+             x:Class="MyPersonalFitness.App.WorkoutsPage"
+             Title="💪 Workouts">
+
+    <VerticalStackLayout Padding="16" Spacing="12">
+
+        <Label Text="Log a Workout" FontSize="18" FontAttributes="Bold" />
+
+        <Entry Placeholder="Workout name (e.g. Push Day)"
+               Text="{Binding NewWorkoutName}" />
+
+        <Button Text="Save Workout"
+                Command="{Binding StartWorkoutCommand}"
+                IsEnabled="{Binding IsBusy, Converter={x:StaticResource InvertedBoolConverter}}" />
+
+        <Label Text="{Binding StatusMessage}" TextColor="Green"
+               IsVisible="{Binding StatusMessage, Converter={x:StaticResource IsNotNullConverter}}" />
+
+        <Label Text="History" FontSize="16" FontAttributes="Bold" Margin="0,8,0,0" />
+
+        <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+
+        <CollectionView ItemsSource="{Binding Workouts}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Padding="0,6" ColumnDefinitions="*,Auto">
+                        <Label Text="{Binding Name}" FontAttributes="Bold" />
+                        <Label Grid.Column="1"
+                               Text="{Binding StartedAt, StringFormat='{0:MMM d}'}"
+                               TextColor="Gray" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </VerticalStackLayout>
+</ContentPage>

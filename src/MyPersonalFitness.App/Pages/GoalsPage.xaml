@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MyPersonalFitness.App.GoalsPage"
+             Title="🎯 Goals &amp; Progress">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="16">
+
+            <Label Text="Goal Estimate" FontSize="18" FontAttributes="Bold" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+
+            <Label Text="{Binding EstimateSummary}"
+                   FontSize="15"
+                   LineBreakMode="WordWrap" />
+
+            <!-- Estimate details panel -->
+            <VerticalStackLayout Spacing="8"
+                IsVisible="{Binding Estimate, Converter={x:StaticResource IsNotNullConverter}}">
+
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+                    <Border Padding="12" BackgroundColor="#EDE7F6" StrokeShape="RoundRectangle 8">
+                        <VerticalStackLayout>
+                            <Label Text="Current" TextColor="Gray" FontSize="11" />
+                            <Label Text="{Binding Estimate.CurrentWeightKg, StringFormat='{0:F1} kg'}"
+                                   FontAttributes="Bold" FontSize="18" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="1" Padding="12" BackgroundColor="#EDE7F6" StrokeShape="RoundRectangle 8">
+                        <VerticalStackLayout>
+                            <Label Text="Target" TextColor="Gray" FontSize="11" />
+                            <Label Text="{Binding Estimate.TargetWeightKg, StringFormat='{0:F1} kg'}"
+                                   FontAttributes="Bold" FontSize="18" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Row="1" Padding="12" BackgroundColor="#EDE7F6" StrokeShape="RoundRectangle 8">
+                        <VerticalStackLayout>
+                            <Label Text="Weekly Rate" TextColor="Gray" FontSize="11" />
+                            <Label Text="{Binding Estimate.WeeklyRateKg, StringFormat='{0:+0.00;-0.00} kg/wk'}"
+                                   FontAttributes="Bold" FontSize="18" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Row="1" Grid.Column="1" Padding="12" BackgroundColor="#EDE7F6" StrokeShape="RoundRectangle 8">
+                        <VerticalStackLayout>
+                            <Label Text="Est. Weeks" TextColor="Gray" FontSize="11" />
+                            <Label Text="{Binding Estimate.EstimatedWeeksRemaining, StringFormat='{0:F0} wks'}"
+                                   FontAttributes="Bold" FontSize="18" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <Label Text="{Binding Estimate.EstimatedCompletionDate, StringFormat='Estimated completion: {0:MMMM d, yyyy}'}"
+                       FontSize="14" />
+
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MyPersonalFitness.App/MyPersonalFitness.App.csproj" />
+    <Project Path="src/MyPersonalFitness.Core/MyPersonalFitness.Core.csproj" />
+    <Project Path="src/MyPersonalFitness.Web/MyPersonalFitness.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MyPersonalFitness.Tests/MyPersonalFitness.Tests.csproj" />
+  </Folder>
+</Solution>

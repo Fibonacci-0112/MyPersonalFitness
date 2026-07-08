@@ -1,0 +1,171 @@
+@page "/meal-plans"
+@inject NutritionService NutritionSvc
+
+<PageTitle>Meal Plans – MyPersonalFitness</PageTitle>
+
+<h1>🍽️ Meal Plans</h1>
+<p class="text-muted">Create reusable nutrition templates with target foods, quantities and meal types.</p>
+
+<button class="btn btn-primary mb-3" @onclick="ShowNewPlanForm">+ New Meal Plan</button>
+
+@if (_showForm)
+{
+    <div class="card mb-4">
+        <div class="card-header">@(_editing ? "Edit Meal Plan" : "New Meal Plan")</div>
+        <div class="card-body">
+            <EditForm Model="_form" OnValidSubmit="SavePlan">
+                <DataAnnotationsValidator />
+                <div class="mb-3">
+                    <label class="form-label">Plan Name</label>
+                    <InputText class="form-control" @bind-Value="_form.Name" placeholder="e.g. 2000 kcal Fat Loss" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <InputTextArea class="form-control" rows="2" @bind-Value="_form.Description" />
+                </div>
+
+                <h6>Entries</h6>
+                @for (int i = 0; i < _form.Entries.Count; i++)
+                {
+                    var entry = _form.Entries[i];
+                    var idx = i;
+                    <div class="row g-2 align-items-end mb-2">
+                        <div class="col-md-3">
+                            <label class="form-label small">Meal Type</label>
+                            <InputSelect class="form-select form-select-sm" @bind-Value="entry.MealType">
+                                @foreach (var mt in Enum.GetValues<MealType>())
+                                {
+                                    <option value="@mt">@mt</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Food Name</label>
+                            <InputText class="form-control form-control-sm" @bind-Value="entry.FoodName"
+                                       placeholder="e.g. Chicken Breast" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">Grams</label>
+                            <InputNumber class="form-control form-control-sm" @bind-Value="entry.QuantityGrams" min="1" />
+                        </div>
+                        <div class="col-md-1">
+                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                    @onclick="() => RemoveEntry(idx)">✕</button>
+                        </div>
+                    </div>
+                }
+                <button type="button" class="btn btn-outline-secondary btn-sm mb-3"
+                        @onclick="AddEntry">+ Add Food</button>
+
+                <div class="card bg-light p-2 mb-3">
+                    <small>Plan totals (approximate, based on food item data):</small>
+                    <strong>@_form.TotalCalories.ToString("F0") kcal</strong> |
+                    P: @_form.TotalProtein.ToString("F1") g |
+                    C: @_form.TotalCarbs.ToString("F1") g |
+                    F: @_form.TotalFat.ToString("F1") g
+                </div>
+
+                <div>
+                    <button type="submit" class="btn btn-success">Save</button>
+                    <button type="button" class="btn btn-secondary ms-1" @onclick="CancelForm">Cancel</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@foreach (var plan in _plans)
+{
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><strong>@plan.Name</strong></span>
+            <div>
+                <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => EditPlan(plan)">Edit</button>
+                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeletePlan(plan)">Delete</button>
+            </div>
+        </div>
+        <table class="table table-sm mb-0">
+            <thead><tr><th>Meal</th><th>Food</th><th>g</th></tr></thead>
+            <tbody>
+                @foreach (var e in plan.Entries)
+                {
+                    <tr>
+                        <td>@e.MealType</td>
+                        <td>@e.FoodName</td>
+                        <td>@e.QuantityGrams.ToString("F0")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private const int UserId = 1;
+    private List<MealPlan> _plans = [];
+    private bool _showForm;
+    private bool _editing;
+    private MealPlan _form = new() { UserId = UserId };
+
+    protected override async Task OnInitializedAsync() => await LoadPlans();
+
+    private async Task LoadPlans()
+    {
+        _plans = (await NutritionSvc.GetMealPlansAsync(UserId)).ToList();
+    }
+
+    private void ShowNewPlanForm()
+    {
+        _form = new MealPlan { UserId = UserId };
+        _editing = false;
+        _showForm = true;
+    }
+
+    private void EditPlan(MealPlan plan)
+    {
+        _form = new MealPlan
+        {
+            Id = plan.Id,
+            UserId = plan.UserId,
+            Name = plan.Name,
+            Description = plan.Description,
+            IsActive = plan.IsActive,
+            Entries = plan.Entries.Select(e => new MealPlanEntry
+            {
+                Id = e.Id,
+                MealType = e.MealType,
+                FoodName = e.FoodName,
+                QuantityGrams = e.QuantityGrams
+            }).ToList()
+        };
+        _editing = true;
+        _showForm = true;
+    }
+
+    private async Task DeletePlan(MealPlan plan)
+    {
+        plan.IsActive = false;
+        await NutritionSvc.UpdateMealPlanAsync(plan);
+        await LoadPlans();
+    }
+
+    private void AddEntry()
+    {
+        _form.Entries.Add(new MealPlanEntry());
+    }
+
+    private void RemoveEntry(int idx) => _form.Entries.RemoveAt(idx);
+
+    private async Task SavePlan()
+    {
+        if (_editing)
+            await NutritionSvc.UpdateMealPlanAsync(_form);
+        else
+            await NutritionSvc.CreateMealPlanAsync(_form);
+
+        CancelForm();
+        await LoadPlans();
+    }
+
+    private void CancelForm() => _showForm = false;
+}

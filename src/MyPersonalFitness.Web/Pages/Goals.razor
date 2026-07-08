@@ -1,0 +1,186 @@
+@page "/goals"
+@inject GoalEstimatorService GoalSvc
+@inject BodyMetricService BodyMetricSvc
+@inject MyPersonalFitness.Core.Interfaces.IFitnessGoalRepository GoalRepo
+@inject MyPersonalFitness.Core.Interfaces.IUserProfileRepository UserRepo
+
+<PageTitle>Goals &amp; Progress – MyPersonalFitness</PageTitle>
+
+<h1>🎯 Goals &amp; Progress</h1>
+
+<button class="btn btn-primary mb-3" @onclick="ShowGoalForm">+ Set Goal</button>
+
+@if (_showForm)
+{
+    <div class="card mb-4">
+        <div class="card-header">Set Fitness Goal</div>
+        <div class="card-body">
+            <EditForm Model="_form" OnValidSubmit="SaveGoal">
+                <DataAnnotationsValidator />
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Goal Type</label>
+                        <InputSelect class="form-select" @bind-Value="_form.GoalType">
+                            @foreach (var gt in Enum.GetValues<GoalType>())
+                            {
+                                <option value="@gt">@gt</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Target Weight (kg)</label>
+                        <InputNumber class="form-control" @bind-Value="_form.TargetWeightKg"
+                                     min="30" max="300" step="0.5" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Daily Calorie Target</label>
+                        <InputNumber class="form-control" @bind-Value="_form.DailyCalorieTarget"
+                                     min="1000" max="6000" step="50" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Weekly Workouts Target</label>
+                        <InputNumber class="form-control" @bind-Value="_form.WeeklyWorkoutsTarget"
+                                     min="1" max="14" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Target Date (optional)</label>
+                        <InputDate class="form-control" @bind-Value="_form.TargetDate" />
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-success">Save Goal</button>
+                    <button type="button" class="btn btn-secondary ms-1"
+                            @onclick="() => _showForm = false">Cancel</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<!-- Active goal estimate -->
+@if (_estimate != null)
+{
+    <div class="card mb-4 @(_estimate.IsOnTrack ? "border-success" : "border-warning")">
+        <div class="card-header bg-transparent">
+            <strong>Goal Estimate</strong>
+            <span class="ms-2 badge @(_estimate.ConfidenceLevel switch {
+                ConfidenceLevel.High => "bg-success",
+                ConfidenceLevel.Medium => "bg-warning text-dark",
+                _ => "bg-danger" })">
+                @_estimate.ConfidenceLevel Confidence
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="text-muted small">Current Weight</div>
+                    <div class="fw-bold fs-5">@_estimate.CurrentWeightKg.ToString("F1") kg</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-muted small">Target Weight</div>
+                    <div class="fw-bold fs-5">@_estimate.TargetWeightKg.ToString("F1") kg</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-muted small">Remaining</div>
+                    <div class="fw-bold fs-5">@_estimate.RemainingKg.ToString("F1") kg</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-muted small">Weekly Rate</div>
+                    <div class="fw-bold fs-5">@_estimate.WeeklyRateKg.ToString("F2") kg/wk</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-muted small">Estimated Completion</div>
+                    <div class="fw-bold fs-5">@_estimate.EstimatedCompletionDate.ToString("MMM d, yyyy")</div>
+                    <small>(@_estimate.EstimatedWeeksRemaining.ToString("F0") weeks)</small>
+                </div>
+                @if (_estimate.TargetDate.HasValue)
+                {
+                    <div class="col-md-3">
+                        <div class="text-muted small">Your Target Date</div>
+                        <div class="fw-bold fs-5">@_estimate.TargetDate.Value.ToString("MMM d, yyyy")</div>
+                        <span class="badge @(_estimate.IsOnTrack ? "bg-success" : "bg-danger")">
+                            @(_estimate.IsOnTrack ? "✅ On Track" : "⚠️ Behind")
+                        </span>
+                    </div>
+                }
+                <div class="col-md-3">
+                    <div class="text-muted small">Daily Calorie Adjustment</div>
+                    <div class="fw-bold fs-5">
+                        @(_estimate.DailyCalorieAdjustment >= 0 ? "+" : "")@_estimate.DailyCalorieAdjustment.ToString("F0") kcal
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else if (_goals.Any(g => g.IsActive))
+{
+    <div class="alert alert-info">
+        Log more body measurements to get a personalized timeline estimate.
+    </div>
+}
+
+<!-- Goal history -->
+@if (_goals.Any())
+{
+    <h5>Goal History</h5>
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Type</th><th>Target (kg)</th><th>Daily kcal</th>
+                <th>Workouts/wk</th><th>Target Date</th><th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var g in _goals)
+            {
+                <tr>
+                    <td>@g.GoalType</td>
+                    <td>@(g.TargetWeightKg.HasValue ? g.TargetWeightKg.Value.ToString("F1") : "—")</td>
+                    <td>@(g.DailyCalorieTarget.HasValue ? g.DailyCalorieTarget.Value.ToString("F0") : "—")</td>
+                    <td>@(g.WeeklyWorkoutsTarget.HasValue ? g.WeeklyWorkoutsTarget.Value.ToString() : "—")</td>
+                    <td>@(g.TargetDate.HasValue ? g.TargetDate.Value.ToString("MMM d, yyyy") : "—")</td>
+                    <td>@(g.IsActive ? "Active" : "Archived")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private const int UserId = 1;
+    private List<FitnessGoal> _goals = [];
+    private GoalEstimate? _estimate;
+    private bool _showForm;
+    private FitnessGoal _form = new() { UserId = UserId };
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load()
+    {
+        _goals = (await GoalRepo.GetByUserAsync(UserId)).ToList();
+        _estimate = await GoalSvc.EstimateAsync(UserId);
+    }
+
+    private void ShowGoalForm()
+    {
+        _form = new FitnessGoal { UserId = UserId };
+        _showForm = true;
+    }
+
+    private async Task SaveGoal()
+    {
+        // Deactivate existing active goal
+        var active = await GoalRepo.GetActiveGoalByUserAsync(UserId);
+        if (active != null)
+        {
+            active.IsActive = false;
+            await GoalRepo.UpdateAsync(active);
+        }
+
+        _form.IsActive = true;
+        await GoalRepo.AddAsync(_form);
+        _showForm = false;
+        await Load();
+    }
+}

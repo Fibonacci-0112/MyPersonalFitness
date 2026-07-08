@@ -1,0 +1,139 @@
+@page "/"
+@inject WorkoutService WorkoutSvc
+@inject NutritionService NutritionSvc
+@inject BodyMetricService BodyMetricSvc
+@inject GoalEstimatorService GoalSvc
+@inject MyPersonalFitness.Core.Interfaces.IUserProfileRepository UserRepo
+
+<PageTitle>Dashboard – MyPersonalFitness</PageTitle>
+
+<h1>🏋️ Dashboard</h1>
+
+@if (_profile == null)
+{
+    <div class="alert alert-info">
+        <strong>Welcome!</strong> Please set up your <a href="profile">profile</a> to get started.
+    </div>
+}
+else
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Current Weight</h5>
+                    <p class="card-text display-6">
+                        @(_latestMetric?.WeightKg.ToString("F1") ?? "—") kg
+                    </p>
+                    @if (_weightChange.HasValue)
+                    {
+                        <small>@(_weightChange > 0 ? "+" : "")@_weightChange.Value.ToString("F1") kg since start</small>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Today's Calories</h5>
+                    <p class="card-text display-6">@_todaySummary.TotalCalories.ToString("F0") kcal</p>
+                    <small>@_todaySummary.MealCount meal(s) logged</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">Weekly Volume</h5>
+                    <p class="card-text display-6">@_weeklyVolume.ToString("N0") kg</p>
+                    <small>total weight lifted this week</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Goal ETA</h5>
+                    @if (_estimate != null)
+                    {
+                        <p class="card-text display-6">@_estimate.EstimatedWeeksRemaining.ToString("F0") wks</p>
+                        <small class="@(_estimate.IsOnTrack ? "text-success" : "text-danger")">
+                            @(_estimate.IsOnTrack ? "✅ On track" : "⚠️ Behind schedule")
+                        </small>
+                    }
+                    else
+                    {
+                        <p class="card-text">Set a goal to see your ETA</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Recent Workouts</div>
+                <div class="card-body">
+                    @if (!_recentWorkouts.Any())
+                    {
+                        <p class="text-muted">No workouts logged yet. <a href="workouts">Log one now!</a></p>
+                    }
+                    else
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var w in _recentWorkouts.Take(5))
+                            {
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>@w.Name</span>
+                                    <small class="text-muted">@w.StartedAt.ToString("MMM d")</small>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Today's Nutrition</div>
+                <div class="card-body">
+                    <table class="table table-sm mb-0">
+                        <tbody>
+                            <tr><th>Calories</th><td>@_todaySummary.TotalCalories.ToString("F0") kcal</td></tr>
+                            <tr><th>Protein</th><td>@_todaySummary.TotalProtein.ToString("F1") g</td></tr>
+                            <tr><th>Carbs</th><td>@_todaySummary.TotalCarbs.ToString("F1") g</td></tr>
+                            <tr><th>Fat</th><td>@_todaySummary.TotalFat.ToString("F1") g</td></tr>
+                        </tbody>
+                    </table>
+                    <a href="nutrition" class="btn btn-sm btn-outline-primary mt-2">Log a meal</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private UserProfile? _profile;
+    private BodyMetric? _latestMetric;
+    private double? _weightChange;
+    private DailySummary _todaySummary = new();
+    private double _weeklyVolume;
+    private GoalEstimate? _estimate;
+    private IEnumerable<Workout> _recentWorkouts = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Profile would be loaded from the profile page in a real app;
+        // for now we check if any profile exists.
+        var userId = 1; // single-user app
+
+        _profile = await UserRepo.GetCurrentUserAsync();
+        _latestMetric = await BodyMetricSvc.GetLatestAsync(userId);
+        _weightChange = await BodyMetricSvc.GetTotalWeightChangeAsync(userId);
+        _todaySummary = await NutritionSvc.GetDailySummaryAsync(userId, DateTime.Today);
+        _weeklyVolume = await WorkoutSvc.GetWeeklyVolumeAsync(userId);
+        _estimate = await GoalSvc.EstimateAsync(userId);
+        _recentWorkouts = await WorkoutSvc.GetWorkoutHistoryAsync(userId);
+    }
+}

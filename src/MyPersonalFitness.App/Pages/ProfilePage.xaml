@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MyPersonalFitness.App.ProfilePage"
+             Title="👤 Profile">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Label Text="Your Profile" FontSize="18" FontAttributes="Bold" />
+            <Label Text="Set up your information to enable accurate calorie and goal calculations."
+                   TextColor="Gray" FontSize="13" />
+
+            <Label Text="Name" />
+            <Entry Text="{Binding Profile.Name}" Placeholder="Your name" />
+
+            <Label Text="Height (cm)" />
+            <Entry Text="{Binding Profile.HeightCm}" Keyboard="Numeric" Placeholder="175" />
+
+            <Label Text="Starting Weight (kg)" />
+            <Entry Text="{Binding Profile.StartingWeightKg}" Keyboard="Numeric" Placeholder="80.0" />
+
+            <Button Text="Save Profile"
+                    Command="{Binding SaveCommand}" />
+
+            <Label Text="{Binding StatusMessage}" TextColor="Green"
+                   IsVisible="{Binding StatusMessage, Converter={x:StaticResource IsNotNullConverter}}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,168 @@
+@page "/workouts"
+@inject WorkoutService WorkoutSvc
+
+<PageTitle>Workouts – MyPersonalFitness</PageTitle>
+
+<h1>💪 Workouts</h1>
+
+<div class="row mb-3">
+    <div class="col">
+        <button class="btn btn-primary" @onclick="ShowLogForm">+ Log New Workout</button>
+    </div>
+</div>
+
+@if (_showForm)
+{
+    <div class="card mb-4">
+        <div class="card-header">Log Workout</div>
+        <div class="card-body">
+            <EditForm Model="_newWorkout" OnValidSubmit="SaveWorkout">
+                <DataAnnotationsValidator />
+                <div class="mb-3">
+                    <label class="form-label">Workout Name</label>
+                    <InputText class="form-control" @bind-Value="_newWorkout.Name" placeholder="e.g. Push Day, Leg Day" />
+                </div>
+
+                <h6>Exercises</h6>
+                @foreach (var ex in _newWorkout.Exercises)
+                {
+                    <div class="card mb-2">
+                        <div class="card-body py-2">
+                            <div class="row g-2 align-items-end mb-2">
+                                <div class="col-md-6">
+                                    <label class="form-label small">Exercise Name</label>
+                                    <InputText class="form-control form-control-sm" @bind-Value="ex.ExerciseName" />
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            @onclick="() => AddSet(ex)">+ Set</button>
+                                </div>
+                            </div>
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr><th>Set</th><th>Reps</th><th>Weight (kg)</th><th>Done?</th></tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var s in ex.Sets)
+                                    {
+                                        <tr>
+                                            <td>@s.SetNumber</td>
+                                            <td><InputNumber class="form-control form-control-sm" @bind-Value="s.Reps" /></td>
+                                            <td><InputNumber class="form-control form-control-sm" @bind-Value="s.WeightKg" /></td>
+                                            <td><InputCheckbox @bind-Value="s.IsCompleted" /></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+
+                <button type="button" class="btn btn-outline-secondary btn-sm me-2"
+                        @onclick="AddExercise">+ Add Exercise</button>
+                <button type="submit" class="btn btn-success">Save Workout</button>
+                <button type="button" class="btn btn-secondary ms-1" @onclick="() => _showForm = false">Cancel</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<h5>Workout History</h5>
+@if (!_workouts.Any())
+{
+    <p class="text-muted">No workouts logged yet.</p>
+}
+else
+{
+    <div class="accordion" id="workoutAccordion">
+        @foreach (var w in _workouts)
+        {
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#workout-@w.Id">
+                        <strong>@w.Name</strong>&nbsp;
+                        <small class="text-muted ms-2">@w.StartedAt.ToString("MMM d, yyyy")</small>
+                        @if (w.CompletedAt.HasValue)
+                        {
+                            <span class="badge bg-success ms-2">Completed</span>
+                        }
+                        <span class="ms-auto me-3 small text-muted">Vol: @w.TotalVolumeKg.ToString("N0") kg</span>
+                    </button>
+                </h2>
+                <div id="workout-@w.Id" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+                        @foreach (var ex in w.Exercises)
+                        {
+                            <h6>@ex.ExerciseName</h6>
+                            <table class="table table-sm">
+                                <thead><tr><th>Set</th><th>Reps</th><th>Weight (kg)</th></tr></thead>
+                                <tbody>
+                                    @foreach (var s in ex.Sets.Where(s => s.IsCompleted))
+                                    {
+                                        <tr>
+                                            <td>@s.SetNumber</td>
+                                            <td>@s.Reps</td>
+                                            <td>@s.WeightKg</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private const int UserId = 1;
+    private List<Workout> _workouts = [];
+    private bool _showForm;
+    private Workout _newWorkout = new() { UserId = UserId };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadWorkouts();
+    }
+
+    private async Task LoadWorkouts()
+    {
+        _workouts = (await WorkoutSvc.GetWorkoutHistoryAsync(UserId)).ToList();
+    }
+
+    private void ShowLogForm()
+    {
+        _newWorkout = new Workout { UserId = UserId, Name = "" };
+        _showForm = true;
+    }
+
+    private void AddExercise()
+    {
+        _newWorkout.Exercises.Add(new WorkoutExercise
+        {
+            OrderInWorkout = _newWorkout.Exercises.Count + 1,
+            ExerciseName = ""
+        });
+    }
+
+    private void AddSet(WorkoutExercise ex)
+    {
+        ex.Sets.Add(new WorkoutSet { SetNumber = ex.Sets.Count + 1 });
+    }
+
+    private async Task SaveWorkout()
+    {
+        _newWorkout.StartedAt = DateTime.UtcNow;
+        _newWorkout.CompletedAt = DateTime.UtcNow;
+        foreach (var ex in _newWorkout.Exercises)
+            foreach (var s in ex.Sets)
+                s.IsCompleted = true;
+
+        await WorkoutSvc.StartWorkoutAsync(UserId, _newWorkout.Name);
+        _showForm = false;
+        await LoadWorkouts();
+    }
+}

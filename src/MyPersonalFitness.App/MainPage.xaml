@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MyPersonalFitness.App.MainPage"
+             Title="MyPersonalFitness">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+
+            <Label Text="🏋️ MyPersonalFitness"
+                   FontSize="28" FontAttributes="Bold"
+                   HorizontalOptions="Center" />
+
+            <Label Text="Your personal cross-platform fitness companion"
+                   FontSize="14" TextColor="Gray"
+                   HorizontalOptions="Center" />
+
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" RowSpacing="12" ColumnSpacing="12">
+
+                <Button Grid.Row="0" Grid.Column="0"
+                        Text="💪 Workouts"
+                        Clicked="OnWorkoutsClicked" />
+
+                <Button Grid.Row="0" Grid.Column="1"
+                        Text="🥗 Nutrition"
+                        Clicked="OnNutritionClicked" />
+
+                <Button Grid.Row="1" Grid.Column="0"
+                        Text="📊 Body Metrics"
+                        Clicked="OnBodyMetricsClicked" />
+
+                <Button Grid.Row="1" Grid.Column="1"
+                        Text="🎯 Goals"
+                        Clicked="OnGoalsClicked" />
+
+            </Grid>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
