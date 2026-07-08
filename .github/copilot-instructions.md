@@ -90,7 +90,7 @@ Every repository method is **async** (returns `Task` or `Task<T>`). The `InMemor
 
 Enumerations: `MuscleGroup`, `ExerciseCategory`, `MealType`, `GoalType`, `Gender`, `ActivityLevel`, `ConfidenceLevel`.
 
-All timestamps use **UTC** (`DateTime.UtcNow`). Weight is always in **kilograms**. Distances/heights in **centimetres**. Calories are **kcal**.
+Core logic defaults timestamps to **UTC** (`DateTime.UtcNow`); prefer persisting UTC and only converting to local time in the UI (note: some UI code currently initializes timestamps with `DateTime.Now`). Weight is always in **kilograms**. Distances/heights in **centimetres**. Calories are **kcal**.
 
 ---
 
