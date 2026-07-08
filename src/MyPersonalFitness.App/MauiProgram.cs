@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using MyPersonalFitness.Core;
 
 namespace MyPersonalFitness.App;
