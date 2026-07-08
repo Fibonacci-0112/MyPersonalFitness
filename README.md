@@ -48,7 +48,7 @@ MyPersonalFitness.sln
 
 ### Prerequisites
 
-* [.NET 11 SDK](https://dotnet.microsoft.com/download) (or later)
+* [.NET 11 SDK](https://dotnet.microsoft.com/download) matching the version pinned in `global.json` (preview SDKs may be required)
 * .NET MAUI workload (for native platforms): `dotnet workload install maui`
 
 ### Run the Web app (no MAUI workload required)
