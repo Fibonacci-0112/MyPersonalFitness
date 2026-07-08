@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MyPersonalFitness.App.BodyMetricsPage"
+             Title="📊 Body Metrics">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Label Text="Log Weight" FontSize="18" FontAttributes="Bold" />
+
+            <Entry Placeholder="Weight in kg (e.g. 85.5)"
+                   Keyboard="Numeric"
+                   Text="{Binding NewWeightKg}" />
+
+            <Button Text="Log Weight"
+                    Command="{Binding LogWeightCommand}" />
+
+            <Label Text="{Binding StatusMessage}" TextColor="Green"
+                   IsVisible="{Binding StatusMessage, Converter={x:StaticResource IsNotNullConverter}}" />
+
+            <!-- Latest measurement -->
+            <Label Text="Latest Measurement" FontSize="16" FontAttributes="Bold" Margin="0,8,0,0" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8" IsVisible="{Binding Latest, Converter={x:StaticResource IsNotNullConverter}}">
+                <Border Padding="12" BackgroundColor="#E8F5E9" StrokeShape="RoundRectangle 8">
+                    <VerticalStackLayout>
+                        <Label Text="Weight" TextColor="Gray" FontSize="12" />
+                        <Label Text="{Binding Latest.WeightKg, StringFormat='{0:F1} kg'}"
+                               FontAttributes="Bold" FontSize="20" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Column="1" Padding="12" BackgroundColor="#E8F5E9" StrokeShape="RoundRectangle 8">
+                    <VerticalStackLayout>
+                        <Label Text="Change Since Start" TextColor="Gray" FontSize="12" />
+                        <Label Text="{Binding WeightChange, StringFormat='{0:+0.0;-0.0;0.0} kg'}"
+                               FontAttributes="Bold" FontSize="20" />
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <Label Text="History" FontSize="16" FontAttributes="Bold" Margin="0,8,0,0" />
+
+            <CollectionView ItemsSource="{Binding History}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="0,6" ColumnDefinitions="*,Auto,Auto">
+                            <Label Text="{Binding MeasuredAt, StringFormat='{0:MMM d, yyyy}'}" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding WeightKg, StringFormat='{0:F1} kg'}"
+                                   FontAttributes="Bold" Margin="0,0,8,0" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

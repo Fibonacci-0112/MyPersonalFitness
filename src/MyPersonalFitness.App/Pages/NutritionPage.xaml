@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MyPersonalFitness.App.NutritionPage"
+             Title="🥗 Nutrition">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Label Text="Today's Summary" FontSize="18" FontAttributes="Bold" />
+
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+                <Border Grid.Row="0" Grid.Column="0" Padding="12" BackgroundColor="#F0F0F0" StrokeShape="RoundRectangle 8">
+                    <VerticalStackLayout>
+                        <Label Text="Calories" TextColor="Gray" FontSize="12" />
+                        <Label Text="{Binding Summary.TotalCalories, StringFormat='{0:F0} kcal'}"
+                               FontAttributes="Bold" FontSize="16" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="1" Padding="12" BackgroundColor="#F0F0F0" StrokeShape="RoundRectangle 8">
+                    <VerticalStackLayout>
+                        <Label Text="Protein" TextColor="Gray" FontSize="12" />
+                        <Label Text="{Binding Summary.TotalProtein, StringFormat='{0:F1} g'}"
+                               FontAttributes="Bold" FontSize="16" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="0" Padding="12" BackgroundColor="#F0F0F0" StrokeShape="RoundRectangle 8">
+                    <VerticalStackLayout>
+                        <Label Text="Carbs" TextColor="Gray" FontSize="12" />
+                        <Label Text="{Binding Summary.TotalCarbs, StringFormat='{0:F1} g'}"
+                               FontAttributes="Bold" FontSize="16" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="1" Padding="12" BackgroundColor="#F0F0F0" StrokeShape="RoundRectangle 8">
+                    <VerticalStackLayout>
+                        <Label Text="Fat" TextColor="Gray" FontSize="12" />
+                        <Label Text="{Binding Summary.TotalFat, StringFormat='{0:F1} g'}"
+                               FontAttributes="Bold" FontSize="16" />
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <Label Text="Today's Meals" FontSize="16" FontAttributes="Bold" Margin="0,8,0,0" />
+
+            <CollectionView ItemsSource="{Binding TodayMeals}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="0,6" ColumnDefinitions="*,Auto">
+                            <Label Text="{Binding MealType}" FontAttributes="Bold" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding TotalCalories, StringFormat='{0:F0} kcal'}"
+                                   TextColor="Gray" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
