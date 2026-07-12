@@ -1,0 +1,177 @@
+@page "/nutrition"
+@inject NutritionService NutritionSvc
+
+<PageTitle>Nutrition – MyPersonalFitness</PageTitle>
+
+<h1>🥗 Nutrition</h1>
+
+<div class="row mb-3">
+    <div class="col">
+        <button class="btn btn-primary" @onclick="ShowLogForm">+ Log Meal</button>
+        <input type="date" class="form-control d-inline-block ms-2" style="width:auto"
+               @bind="_selectedDate" @bind:after="LoadDay" />
+    </div>
+</div>
+
+<!-- Daily summary cards -->
+<div class="row g-2 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card text-center text-bg-light">
+            <div class="card-body py-2">
+                <div class="small text-muted">Calories</div>
+                <div class="fw-bold">@_summary.TotalCalories.ToString("F0") kcal</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center text-bg-light">
+            <div class="card-body py-2">
+                <div class="small text-muted">Protein</div>
+                <div class="fw-bold">@_summary.TotalProtein.ToString("F1") g</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center text-bg-light">
+            <div class="card-body py-2">
+                <div class="small text-muted">Carbs</div>
+                <div class="fw-bold">@_summary.TotalCarbs.ToString("F1") g</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center text-bg-light">
+            <div class="card-body py-2">
+                <div class="small text-muted">Fat</div>
+                <div class="fw-bold">@_summary.TotalFat.ToString("F1") g</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (_showForm)
+{
+    <div class="card mb-4">
+        <div class="card-header">Log Meal</div>
+        <div class="card-body">
+            <EditForm Model="_newMeal" OnValidSubmit="SaveMeal">
+                <DataAnnotationsValidator />
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Meal Type</label>
+                        <InputSelect class="form-select" @bind-Value="_newMeal.MealType">
+                            @foreach (var mt in Enum.GetValues<MealType>())
+                            {
+                                <option value="@mt">@mt</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Date</label>
+                        <InputDate class="form-control" @bind-Value="_newMeal.LoggedAt" />
+                    </div>
+                </div>
+
+                <h6>Foods</h6>
+                @for (int i = 0; i < _newMeal.Foods.Count; i++)
+                {
+                    var food = _newMeal.Foods[i];
+                    var idx = i;
+                    <div class="row g-2 align-items-end mb-2">
+                        <div class="col-md-5">
+                            <InputText class="form-control form-control-sm"
+                                       @bind-Value="food.FoodName"
+                                       placeholder="Food name" />
+                        </div>
+                        <div class="col-md-2">
+                            <InputNumber class="form-control form-control-sm"
+                                         @bind-Value="food.QuantityGrams"
+                                         placeholder="Grams" min="1" />
+                        </div>
+                        <div class="col-md-1">
+                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                    @onclick="() => RemoveFood(idx)">✕</button>
+                        </div>
+                    </div>
+                }
+                <button type="button" class="btn btn-outline-secondary btn-sm mb-3"
+                        @onclick="AddFood">+ Add Food</button>
+
+                <div>
+                    <button type="submit" class="btn btn-success">Save</button>
+                    <button type="button" class="btn btn-secondary ms-1"
+                            @onclick="() => _showForm = false">Cancel</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<!-- Meals for selected day -->
+@foreach (var meal in _meals)
+{
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between">
+            <span>@meal.MealType &nbsp;
+                <small class="text-muted">@meal.LoggedAt.ToString("h:mm tt")</small>
+            </span>
+            <span>@meal.TotalCalories.ToString("F0") kcal</span>
+        </div>
+        @if (meal.Foods.Any())
+        {
+            <table class="table table-sm mb-0">
+                <thead><tr><th>Food</th><th>Grams</th><th>kcal</th><th>P</th><th>C</th><th>F</th></tr></thead>
+                <tbody>
+                    @foreach (var f in meal.Foods)
+                    {
+                        <tr>
+                            <td>@f.FoodName</td>
+                            <td>@f.QuantityGrams.ToString("F0")</td>
+                            <td>@f.Calories.ToString("F0")</td>
+                            <td>@f.Protein.ToString("F1")</td>
+                            <td>@f.Carbs.ToString("F1")</td>
+                            <td>@f.Fat.ToString("F1")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+}
+
+@code {
+    private const int UserId = 1;
+    private DateTime _selectedDate = DateTime.Today;
+    private DailySummary _summary = new();
+    private List<Meal> _meals = [];
+    private bool _showForm;
+    private Meal _newMeal = new() { UserId = UserId, LoggedAt = DateTime.Now };
+
+    protected override async Task OnInitializedAsync() => await LoadDay();
+
+    private async Task LoadDay()
+    {
+        _meals = (await NutritionSvc.GetMealsForDayAsync(UserId, _selectedDate)).ToList();
+        _summary = await NutritionSvc.GetDailySummaryAsync(UserId, _selectedDate);
+    }
+
+    private void ShowLogForm()
+    {
+        _newMeal = new Meal { UserId = UserId, LoggedAt = _selectedDate };
+        _showForm = true;
+    }
+
+    private void AddFood()
+    {
+        _newMeal.Foods.Add(new MealFood());
+    }
+
+    private void RemoveFood(int idx) => _newMeal.Foods.RemoveAt(idx);
+
+    private async Task SaveMeal()
+    {
+        await NutritionSvc.LogMealAsync(_newMeal);
+        _showForm = false;
+        await LoadDay();
+    }
+}

@@ -1,0 +1,202 @@
+@page "/workout-plans"
+@inject WorkoutService WorkoutSvc
+
+<PageTitle>Workout Plans – MyPersonalFitness</PageTitle>
+
+<h1>📋 Workout Plans</h1>
+<p class="text-muted">Create reusable workout templates with target exercises, sets, reps and weight.</p>
+
+<button class="btn btn-primary mb-3" @onclick="ShowNewPlanForm">+ New Plan</button>
+
+@if (_showForm)
+{
+    <div class="card mb-4">
+        <div class="card-header">@(_editing ? "Edit Plan" : "New Workout Plan")</div>
+        <div class="card-body">
+            <EditForm Model="_form" OnValidSubmit="SavePlan">
+                <DataAnnotationsValidator />
+                <div class="mb-3">
+                    <label class="form-label">Plan Name</label>
+                    <InputText class="form-control" @bind-Value="_form.Name" placeholder="e.g. Push Day, PPL Pull" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <InputTextArea class="form-control" rows="2" @bind-Value="_form.Description" />
+                </div>
+
+                <h6>Exercises</h6>
+                @for (int i = 0; i < _form.Exercises.Count; i++)
+                {
+                    var ex = _form.Exercises[i];
+                    var idx = i;
+                    <div class="card mb-2">
+                        <div class="card-body py-2">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-4">
+                                    <label class="form-label small">Exercise</label>
+                                    <InputText class="form-control form-control-sm" @bind-Value="ex.ExerciseName"
+                                               placeholder="e.g. Bench Press" />
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small">Sets</label>
+                                    <InputNumber class="form-control form-control-sm" @bind-Value="ex.TargetSets" min="1" />
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small">Reps</label>
+                                    <InputNumber class="form-control form-control-sm" @bind-Value="ex.TargetReps" min="1" />
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small">Weight (kg)</label>
+                                    <InputNumber class="form-control form-control-sm" @bind-Value="ex.TargetWeightKg" min="0" step="2.5" />
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            @onclick="() => RemoveExercise(idx)">✕</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                <button type="button" class="btn btn-outline-secondary btn-sm mb-3"
+                        @onclick="AddExercise">+ Add Exercise</button>
+
+                <div>
+                    <button type="submit" class="btn btn-success">Save</button>
+                    <button type="button" class="btn btn-secondary ms-1"
+                            @onclick="CancelForm">Cancel</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@if (!_plans.Any())
+{
+    <p class="text-muted">No workout plans yet.</p>
+}
+else
+{
+    @foreach (var plan in _plans)
+    {
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <strong>@plan.Name</strong>
+                    @if (!plan.IsActive)
+                    {
+                        <span class="badge bg-secondary ms-2">Archived</span>
+                    }
+                </span>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => EditPlan(plan)">Edit</button>
+                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeletePlan(plan)">Delete</button>
+                </div>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(plan.Description))
+            {
+                <div class="card-body pb-0"><p class="text-muted small">@plan.Description</p></div>
+            }
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th><th>Exercise</th><th>Sets</th><th>Reps</th><th>Weight (kg)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ex in plan.Exercises.OrderBy(e => e.OrderInPlan))
+                    {
+                        <tr>
+                            <td>@ex.OrderInPlan</td>
+                            <td>@ex.ExerciseName</td>
+                            <td>@ex.TargetSets</td>
+                            <td>@ex.TargetReps</td>
+                            <td>@(ex.TargetWeightKg > 0 ? ex.TargetWeightKg.ToString("F1") : "BW")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+@code {
+    private const int UserId = 1;
+    private List<WorkoutPlan> _plans = [];
+    private bool _showForm;
+    private bool _editing;
+    private WorkoutPlan _form = new() { UserId = UserId };
+
+    protected override async Task OnInitializedAsync() => await LoadPlans();
+
+    private async Task LoadPlans()
+    {
+        _plans = (await WorkoutSvc.GetWorkoutPlansAsync(UserId)).ToList();
+    }
+
+    private void ShowNewPlanForm()
+    {
+        _form = new WorkoutPlan { UserId = UserId };
+        _editing = false;
+        _showForm = true;
+    }
+
+    private void EditPlan(WorkoutPlan plan)
+    {
+        _form = new WorkoutPlan
+        {
+            Id = plan.Id,
+            UserId = plan.UserId,
+            Name = plan.Name,
+            Description = plan.Description,
+            IsActive = plan.IsActive,
+            Exercises = plan.Exercises.Select(e => new WorkoutPlanExercise
+            {
+                Id = e.Id,
+                ExerciseName = e.ExerciseName,
+                OrderInPlan = e.OrderInPlan,
+                TargetSets = e.TargetSets,
+                TargetReps = e.TargetReps,
+                TargetWeightKg = e.TargetWeightKg
+            }).ToList()
+        };
+        _editing = true;
+        _showForm = true;
+    }
+
+    private async Task DeletePlan(WorkoutPlan plan)
+    {
+        plan.IsActive = false;
+        await WorkoutSvc.UpdateWorkoutPlanAsync(plan);
+        await LoadPlans();
+    }
+
+    private void AddExercise()
+    {
+        _form.Exercises.Add(new WorkoutPlanExercise
+        {
+            OrderInPlan = _form.Exercises.Count + 1,
+            TargetSets = 3,
+            TargetReps = 10
+        });
+    }
+
+    private void RemoveExercise(int idx)
+    {
+        _form.Exercises.RemoveAt(idx);
+        for (int i = 0; i < _form.Exercises.Count; i++)
+            _form.Exercises[i].OrderInPlan = i + 1;
+    }
+
+    private async Task SavePlan()
+    {
+        if (_editing)
+            await WorkoutSvc.UpdateWorkoutPlanAsync(_form);
+        else
+            await WorkoutSvc.CreateWorkoutPlanAsync(_form);
+
+        CancelForm();
+        await LoadPlans();
+    }
+
+    private void CancelForm() => _showForm = false;
+}

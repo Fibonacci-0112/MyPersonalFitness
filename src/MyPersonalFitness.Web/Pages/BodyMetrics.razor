@@ -1,0 +1,178 @@
+@page "/body-metrics"
+@inject BodyMetricService BodyMetricSvc
+
+<PageTitle>Body Metrics – MyPersonalFitness</PageTitle>
+
+<h1>📊 Body Metrics</h1>
+
+<button class="btn btn-primary mb-3" @onclick="ShowLogForm">+ Log Measurement</button>
+
+@if (_showForm)
+{
+    <div class="card mb-4">
+        <div class="card-header">Log Body Measurement</div>
+        <div class="card-body">
+            <EditForm Model="_newMetric" OnValidSubmit="SaveMetric">
+                <DataAnnotationsValidator />
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Date</label>
+                        <InputDate class="form-control" @bind-Value="_newMetric.MeasuredAt" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Weight (kg) *</label>
+                        <InputNumber class="form-control" @bind-Value="_newMetric.WeightKg"
+                                     min="20" max="400" step="0.1" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Body Fat %</label>
+                        <InputNumber class="form-control" @bind-Value="_newMetric.BodyFatPercent"
+                                     min="3" max="60" step="0.1" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Muscle Mass (kg)</label>
+                        <InputNumber class="form-control" @bind-Value="_newMetric.MuscleMassKg"
+                                     min="10" max="150" step="0.1" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Waist (cm)</label>
+                        <InputNumber class="form-control" @bind-Value="_newMetric.WaistCm"
+                                     min="40" max="200" step="0.5" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Hip (cm)</label>
+                        <InputNumber class="form-control" @bind-Value="_newMetric.HipCm"
+                                     min="40" max="200" step="0.5" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Chest (cm)</label>
+                        <InputNumber class="form-control" @bind-Value="_newMetric.ChestCm"
+                                     min="40" max="200" step="0.5" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Notes</label>
+                        <InputTextArea class="form-control" rows="2" @bind-Value="_newMetric.Notes" />
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-success">Save</button>
+                    <button type="button" class="btn btn-secondary ms-1"
+                            @onclick="() => _showForm = false">Cancel</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<!-- Summary if we have data -->
+@if (_latest != null)
+{
+    <div class="row g-2 mb-4">
+        <div class="col-6 col-md-2">
+            <div class="card text-center">
+                <div class="card-body py-2">
+                    <div class="small text-muted">Weight</div>
+                    <div class="fw-bold">@_latest.WeightKg.ToString("F1") kg</div>
+                </div>
+            </div>
+        </div>
+        @if (_latest.BodyFatPercent.HasValue)
+        {
+            <div class="col-6 col-md-2">
+                <div class="card text-center">
+                    <div class="card-body py-2">
+                        <div class="small text-muted">Body Fat</div>
+                        <div class="fw-bold">@_latest.BodyFatPercent.Value.ToString("F1") %</div>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (_latest.WaistCm.HasValue)
+        {
+            <div class="col-6 col-md-2">
+                <div class="card text-center">
+                    <div class="card-body py-2">
+                        <div class="small text-muted">Waist</div>
+                        <div class="fw-bold">@_latest.WaistCm.Value.ToString("F1") cm</div>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (_weightChange.HasValue)
+        {
+            <div class="col-6 col-md-2">
+                <div class="card text-center @(_weightChange < 0 ? "text-bg-success" : "text-bg-danger")">
+                    <div class="card-body py-2">
+                        <div class="small">Total Change</div>
+                        <div class="fw-bold">@(_weightChange > 0 ? "+" : "")@_weightChange.Value.ToString("F1") kg</div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- History table -->
+@if (_metrics.Any())
+{
+    <h5>History</h5>
+    <table class="table table-striped table-sm">
+        <thead>
+            <tr>
+                <th>Date</th><th>Weight (kg)</th><th>BF%</th>
+                <th>Waist (cm)</th><th>Hip (cm)</th><th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var m in _metrics)
+            {
+                <tr>
+                    <td>@m.MeasuredAt.ToString("MMM d, yyyy")</td>
+                    <td>@m.WeightKg.ToString("F1")</td>
+                    <td>@(m.BodyFatPercent.HasValue ? m.BodyFatPercent.Value.ToString("F1") + "%" : "—")</td>
+                    <td>@(m.WaistCm.HasValue ? m.WaistCm.Value.ToString("F1") : "—")</td>
+                    <td>@(m.HipCm.HasValue ? m.HipCm.Value.ToString("F1") : "—")</td>
+                    <td>@m.Notes</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p class="text-muted">No measurements logged yet.</p>
+}
+
+@code {
+    private const int UserId = 1;
+    private List<BodyMetric> _metrics = [];
+    private BodyMetric? _latest;
+    private double? _weightChange;
+    private bool _showForm;
+    private BodyMetric _newMetric = new() { UserId = UserId, MeasuredAt = DateTime.Now };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMetrics();
+    }
+
+    private async Task LoadMetrics()
+    {
+        _metrics = (await BodyMetricSvc.GetHistoryAsync(UserId)).ToList();
+        _latest = await BodyMetricSvc.GetLatestAsync(UserId);
+        _weightChange = await BodyMetricSvc.GetTotalWeightChangeAsync(UserId);
+    }
+
+    private void ShowLogForm()
+    {
+        _newMetric = new BodyMetric { UserId = UserId, MeasuredAt = DateTime.Now };
+        _showForm = true;
+    }
+
+    private async Task SaveMetric()
+    {
+        await BodyMetricSvc.LogBodyMetricAsync(_newMetric);
+        _showForm = false;
+        await LoadMetrics();
+    }
+}

@@ -1,0 +1,118 @@
+{
+  "name": "Health Fitness App - .NET 11 Preview MAUI + Blazor WASM",
+
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "..",
+    "args": {
+      "DOTNET_SDK_VERSION": "11.0.100-preview.5.26302.115"
+    }
+  },
+
+  "hostRequirements": {
+    "cpus": 8,
+    "memory": "32gb",
+    "storage": "64gb"
+  },
+
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "17",
+      "installMaven": false,
+      "installGradle": false
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "moby": true,
+      "version": "latest",
+      "installDockerBuildx": true
+    }
+  },
+
+  "remoteUser": "vscode",
+
+  "containerEnv": {
+    "DOTNET_ROOT": "/usr/share/dotnet",
+    "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
+    "DOTNET_NOLOGO": "true",
+    "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1",
+    "ANDROID_HOME": "/opt/android-sdk",
+    "ANDROID_SDK_ROOT": "/opt/android-sdk",
+    "ANDROID_AVD_HOME": "/home/vscode/.android/avd"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csdevkit",
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.vscode-dotnet-runtime",
+        "ms-dotnettools.dotnet-maui",
+        "github.vscode-github-actions",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "ms-azuretools.vscode-docker",
+        "EditorConfig.EditorConfig",
+        "redhat.vscode-yaml",
+        "esbenp.prettier-vscode"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": "explicit"
+        },
+        "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+        "dotnet.server.useOmnisharp": false,
+        "csharp.format.enable": true,
+        "files.exclude": {
+          "**/bin": true,
+          "**/obj": true
+        },
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+
+  "forwardPorts": [
+    5000,
+    5001,
+    5173,
+    5174,
+    7000,
+    7001,
+    8080,
+    8081
+  ],
+
+  "portsAttributes": {
+    "5000": {
+      "label": "ASP.NET HTTP"
+    },
+    "5001": {
+      "label": "ASP.NET HTTPS"
+    },
+    "5173": {
+      "label": "Blazor/Vite Dev Server"
+    },
+    "5174": {
+      "label": "Secondary Frontend Dev Server"
+    },
+    "7000": {
+      "label": "Backend API HTTP"
+    },
+    "7001": {
+      "label": "Backend API HTTPS"
+    },
+    "8080": {
+      "label": "Local Web App"
+    },
+    "8081": {
+      "label": "Secondary Local Service"
+    }
+  },
+
+  "postCreateCommand": "bash .devcontainer/post-create.sh"
+}
